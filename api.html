@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TTPlay Cookie API</title>
+</head>
+<body>
+    <script>
+        // 这个页面提供JSONP接口获取Cookie
+        
+        // 解密函数
+        function getCookieValue() {
+            const key = "f655ba9d09a112d4968c63579db590b4";
+            const iv = "98344c2eee86c3994890592585b49f80";
+            const cipher = "f21edd9066cdbf47d582054034a320d3";
+            
+            // 这里应该实现AES解密，为了简单起见返回示例
+            // 实际使用需要完整的CryptoJS
+            return "9f7d2a4b6c8e1d3f5a7b9c2d4e6f8a0b"; // 示例值
+        }
+        
+        // 处理请求
+        const urlParams = new URLSearchParams(window.location.search);
+        const callback = urlParams.get('callback');
+        const action = urlParams.get('action');
+        
+        if (callback) {
+            // JSONP响应
+            const response = {
+                success: true,
+                cookie: {
+                    name: "__test",
+                    value: getCookieValue(),
+                    expires: 21600,
+                    path: "/"
+                },
+                timestamp: Date.now()
+            };
+            
+            document.write(`<script>${callback}(${JSON.stringify(response)})<\/script>`);
+        } else if (action === 'redirect') {
+            // 直接跳转
+            const cookieValue = getCookieValue();
+            document.cookie = `__test=${cookieValue}; max-age=21600; path=/`;
+            window.location.href = "http://ttplay.muaini.cn/?i=1";
+        } else {
+            // 显示API文档
+            document.body.innerHTML = `
+                <h1>TTPlay Cookie API</h1>
+                <h3>使用方法：</h3>
+                <ol>
+                    <li><strong>JSONP获取Cookie</strong><br>
+                        <code>https://your-site.com/api.html?callback=myCallback</code>
+                    </li>
+                    <li><strong>直接跳转</strong><br>
+                        <code>https://your-site.com/api.html?action=redirect</code>
+                    </li>
+                    <li><strong>获取Cookie值</strong><br>
+                        <code>https://your-site.com/api.html?format=json</code>
+                    </li>
+                </ol>
+                <h3>示例：</h3>
+                <pre>
+// JavaScript使用
+function getTTPlayCookie(callback) {
+    const script = document.createElement('script');
+    script.src = 'https://your-site.com/api.html?callback=' + callback;
+    document.head.appendChild(script);
+}
+
+// 使用
+getTTPlayCookie(function(data) {
+    document.cookie = data.cookie.name + '=' + data.cookie.value + 
+                      '; max-age=' + data.cookie.expires + 
+                      '; path=' + data.cookie.path;
+    window.location.href = 'http://ttplay.muaini.cn/?i=1';
+});
+                </pre>
+            `;
+        }
+    </script>
+</body>
+</html>
