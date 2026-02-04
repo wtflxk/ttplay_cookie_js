@@ -1,393 +1,327 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>TTPlay增强版访问工具</title>
+    <title>TTPlay访问工具 - 修复版</title>
     <style>
-        body { font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto; }
-        .btn { 
-            padding: 15px 30px; 
-            margin: 10px 5px; 
-            background: #007acc; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 16px; 
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f5f5f5;
         }
-        .btn:hover { background: #005fa3; }
-        .status { 
-            padding: 15px; 
-            margin: 15px 0; 
-            border-radius: 5px; 
-            border-left: 5px solid #007acc;
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #005fa3;
+        }
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+            display: inline-block;
+            margin: 5px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #e8f5e8;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #ffe6e6;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        .loading {
             background: #e6f3ff;
+            border-left: 4px solid #007acc;
+            color: #004085;
         }
-        .success { border-left-color: #28a745; background: #e8f5e8; }
-        .error { border-left-color: #dc3545; background: #ffe6e6; }
-        pre { 
-            background: #f5f5f5; 
-            padding: 15px; 
-            border-radius: 5px; 
-            overflow: auto; 
-            max-height: 500px;
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 300px;
+            font-size: 14px;
+        }
+        .data-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
             border: 1px solid #ddd;
         }
-        .method-group { margin: 20px 0; }
-        .method-btn { 
-            padding: 10px 20px; 
-            margin: 5px; 
-            background: #6c757d; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-        }
-        .method-btn:hover { background: #545b62; }
-        .method-btn.active { background: #007acc; }
     </style>
 </head>
 <body>
-    <h1>🔧 TTPlay增强版访问工具</h1>
-    <p>目标：<code>http://ttplay.muaini.cn</code></p>
-    
-    <div id="status" class="status"></div>
-    
-    <div class="method-group">
-        <h3>选择方法：</h3>
-        <button class="method-btn active" onclick="selectMethod(1)">方法1: 直接代理</button>
-        <button class="method-btn" onclick="selectMethod(2)">方法2: 添加请求头</button>
-        <button class="method-btn" onclick="selectMethod(3)">方法3: Iframe绕过</button>
-        <button class="method-btn" onclick="selectMethod(4)">方法4: 多个代理轮询</button>
-    </div>
-    
-    <button class="btn" onclick="getData()">🚀 开始获取数据</button>
-    <button class="btn" onclick="testAllMethods()">🧪 测试所有方法</button>
-    <button class="btn" onclick="showResponseDetails()">📊 显示响应详情</button>
-    
-    <div id="result" style="margin-top: 30px; display: none;">
-        <h3>获取结果：</h3>
-        <pre id="dataOutput"></pre>
-        <div id="responseInfo" style="margin-top: 15px;"></div>
-    </div>
-    
-    <div id="debugInfo" style="display: none; margin-top: 20px; padding: 15px; background: #333; color: #0f0; border-radius: 5px;">
-        <h3>🐛 调试信息</h3>
-        <pre id="debugOutput"></pre>
+    <div class="container">
+        <h1>🎵 TTPlay访问工具</h1>
+        <p style="text-align: center; color: #666;">
+            访问 <code>http://ttplay.muaini.cn</code>
+        </p>
+        
+        <div id="status" class="status"></div>
+        
+        <button class="btn" id="testBtn" onclick="testConnection()">🔗 测试连接</button>
+        <button class="btn" id="fetchBtn" onclick="getData()">📥 获取数据</button>
+        <button class="btn" onclick="clearAll()">🗑️ 清除结果</button>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="http://ttplay.muaini.cn" target="_blank" style="color: #007acc; text-decoration: none;">
+                🌐 访问原网站
+            </a>
+        </div>
+        
+        <div id="result" style="display: none;">
+            <h3>📊 结果</h3>
+            <div id="resultContent"></div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-radius: 5px;">
+            <h4>📝 使用说明</h4>
+            <ol style="margin: 10px 0 10px 20px;">
+                <li>点击"测试连接"检查网络</li>
+                <li>点击"获取数据"获取服务器信息</li>
+                <li>如果失败，检查控制台(F12)错误</li>
+            </ol>
+        </div>
     </div>
     
     <script>
-        let currentMethod = 1;
-        let debugLogs = [];
+        // ==== 核心函数 ====
         
-        function selectMethod(num) {
-            currentMethod = num;
-            document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            showStatus(`已选择方法 ${num}`, 'info');
+        // 显示状态
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+            console.log('状态:', type, message);
         }
         
-        function logDebug(msg) {
-            debugLogs.push(`[${new Date().toLocaleTimeString()}] ${msg}`);
-            console.log(msg);
-        }
-        
-        function showStatus(msg, type = 'info') {
-            const status = document.getElementById('status');
-            status.innerHTML = msg;
-            status.className = `status ${type}`;
-            logDebug(`状态: ${msg}`);
-        }
-        
-        async function getData() {
-            showStatus('正在获取数据...', 'info');
-            logDebug(`开始获取，使用方法 ${currentMethod}`);
+        // 测试连接
+        async function testConnection() {
+            showStatus('正在测试连接...', 'loading');
+            console.log('开始测试连接');
             
             try {
-                let result;
-                switch(currentMethod) {
-                    case 1: result = await method1(); break;
-                    case 2: result = await method2(); break;
-                    case 3: result = await method3(); break;
-                    case 4: result = await method4(); break;
-                }
+                const btn = document.getElementById('testBtn');
+                btn.disabled = true;
+                btn.innerHTML = '⏳ 连接中...';
                 
-                if (result.success) {
-                    displayResult(result.data, result.headers);
+                // 使用可靠的代理
+                const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('http://ttplay.muaini.cn'));
+                
+                console.log('连接响应:', response.status, response.statusText);
+                
+                if (response.ok) {
+                    showStatus('✅ 连接成功！状态码: ' + response.status, 'success');
                 } else {
-                    showStatus(`❌ 失败: ${result.error}`, 'error');
+                    showStatus('❌ 连接失败: ' + response.status, 'error');
                 }
                 
             } catch (error) {
-                showStatus(`❌ 异常: ${error.message}`, 'error');
-                logDebug(`异常: ${error.stack}`);
+                console.error('连接错误:', error);
+                showStatus('❌ 连接错误: ' + error.message, 'error');
+            } finally {
+                const btn = document.getElementById('testBtn');
+                btn.disabled = false;
+                btn.innerHTML = '🔗 测试连接';
             }
         }
         
-        // 方法1: 直接代理
-        async function method1() {
-            logDebug('方法1: 使用corsproxy.io');
+        // 获取数据
+        async function getData() {
+            showStatus('正在获取数据...', 'loading');
+            console.log('开始获取数据');
+            
+            const btn = document.getElementById('fetchBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ 获取中...';
+            
             try {
-                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('http://ttplay.muaini.cn');
+                // 方法1: 使用allorigins代理
+                const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('http://ttplay.muaini.cn');
+                console.log('使用代理:', proxyUrl);
+                
                 const response = await fetch(proxyUrl);
-                
                 const text = await response.text();
-                const headers = {};
-                response.headers.forEach((v, k) => headers[k] = v);
                 
-                logDebug(`方法1成功: ${response.status}, 长度: ${text.length}`);
-                return { success: true, data: text, headers: headers };
+                console.log('获取成功，长度:', text.length);
+                
+                // 显示结果
+                showResult(text);
+                showStatus('✅ 获取成功！长度: ' + text.length + ' 字符', 'success');
+                
+                // 保存到本地存储
+                saveToStorage(text);
                 
             } catch (error) {
-                logDebug(`方法1失败: ${error.message}`);
-                return { success: false, error: error.message };
+                console.error('获取数据错误:', error);
+                showStatus('❌ 获取失败: ' + error.message, 'error');
+                
+                // 尝试备用方法
+                tryBackup();
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '📥 获取数据';
             }
         }
         
-        // 方法2: 添加请求头
-        async function method2() {
-            logDebug('方法2: 添加请求头绕过CDN');
+        // 备用方法
+        async function tryBackup() {
+            console.log('尝试备用方法...');
+            showStatus('尝试备用方法...', 'loading');
+            
             try {
-                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('http://ttplay.muaini.cn');
-                const response = await fetch(proxyUrl, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                        'Accept-Encoding': 'gzip, deflate',
-                        'Connection': 'keep-alive',
-                        'Upgrade-Insecure-Requests': '1',
-                        'Cache-Control': 'max-age=0',
-                        'Referer': 'http://ttplay.muaini.cn/',
-                        'Origin': 'http://ttplay.muaini.cn'
-                    }
-                });
-                
+                // 备用代理
+                const backupUrl = 'https://thingproxy.freeboard.io/fetch/' + encodeURIComponent('http://ttplay.muaini.cn');
+                const response = await fetch(backupUrl);
                 const text = await response.text();
-                logDebug(`方法2成功: ${response.status}, 长度: ${text.length}`);
-                return { success: true, data: text, headers: {} };
                 
-            } catch (error) {
-                logDebug(`方法2失败: ${error.message}`);
-                return { success: false, error: error.message };
+                console.log('备用方法成功，长度:', text.length);
+                showResult(text);
+                showStatus('✅ 备用方法成功！长度: ' + text.length, 'success');
+                
+            } catch (backupError) {
+                console.error('备用方法也失败:', backupError);
+                showStatus('❌ 所有方法都失败了', 'error');
             }
         }
         
-        // 方法3: Iframe绕过
-        async function method3() {
-            return new Promise((resolve) => {
-                logDebug('方法3: 使用Iframe技巧');
-                
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.sandbox = 'allow-scripts allow-same-origin';
-                iframe.srcdoc = `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <script>
-                            fetch('http://ttplay.muaini.cn')
-                                .then(r => r.text())
-                                .then(data => {
-                                    window.parent.postMessage({
-                                        type: 'iframe_data',
-                                        data: data
-                                    }, '*');
-                                })
-                                .catch(err => {
-                                    window.parent.postMessage({
-                                        type: 'iframe_error',
-                                        error: err.message
-                                    }, '*');
-                                });
-                        <\/script>
-                    </head>
-                    <body></body>
-                    </html>
-                `;
-                
-                const handler = (event) => {
-                    if (event.data.type === 'iframe_data') {
-                        document.body.removeChild(iframe);
-                        window.removeEventListener('message', handler);
-                        logDebug('方法3成功 via iframe');
-                        resolve({ success: true, data: event.data.data, headers: {} });
-                    } else if (event.data.type === 'iframe_error') {
-                        document.body.removeChild(iframe);
-                        window.removeEventListener('message', handler);
-                        logDebug(`方法3失败: ${event.data.error}`);
-                        resolve({ success: false, error: event.data.error });
-                    }
-                };
-                
-                window.addEventListener('message', handler);
-                document.body.appendChild(iframe);
-                
-                // 超时处理
-                setTimeout(() => {
-                    if (iframe.parentNode) {
-                        document.body.removeChild(iframe);
-                        window.removeEventListener('message', handler);
-                        logDebug('方法3超时');
-                        resolve({ success: false, error: 'Iframe加载超时' });
-                    }
-                }, 10000);
-            });
-        }
-        
-        // 方法4: 多个代理轮询
-        async function method4() {
-            logDebug('方法4: 尝试多个代理');
-            
-            const proxies = [
-                { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' },
-                { name: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' },
-                { name: 'corsproxy', url: 'https://corsproxy.io/?' },
-                { name: 'corsanywhere', url: 'https://cors-anywhere.herokuapp.com/' }
-            ];
-            
-            for (const proxy of proxies) {
-                try {
-                    logDebug(`尝试代理: ${proxy.name}`);
-                    const proxyUrl = proxy.url + encodeURIComponent('http://ttplay.muaini.cn');
-                    
-                    const response = await fetch(proxyUrl, { 
-                        timeout: 8000,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    
-                    if (response.ok) {
-                        const text = await response.text();
-                        logDebug(`代理 ${proxy.name} 成功: 长度 ${text.length}`);
-                        return { 
-                            success: true, 
-                            data: text, 
-                            headers: {},
-                            proxy: proxy.name 
-                        };
-                    }
-                } catch (error) {
-                    logDebug(`代理 ${proxy.name} 失败: ${error.message}`);
-                    continue;
-                }
-            }
-            
-            return { success: false, error: '所有代理都失败了' };
-        }
-        
-        function displayResult(data, headers) {
+        // 显示结果
+        function showResult(text) {
             const resultDiv = document.getElementById('result');
-            const output = document.getElementById('dataOutput');
-            const infoDiv = document.getElementById('responseInfo');
+            const contentDiv = document.getElementById('resultContent');
             
-            // 显示数据
-            output.textContent = data;
+            let html = '<div class="data-box">';
+            html += '<p><strong>数据长度:</strong> ' + text.length + ' 字符</p>';
             
-            // 显示信息
-            let info = `<p><strong>数据长度：</strong> ${data.length} 字符</p>`;
-            info += `<p><strong>前200字符：</strong> ${data.substring(0, 200).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
-            
-            if (headers) {
-                info += `<p><strong>响应头：</strong></p><pre style="font-size:12px;">`;
-                for (const [key, value] of Object.entries(headers)) {
-                    info += `${key}: ${value}\n`;
+            if (text.length > 0) {
+                // 显示前500字符
+                const preview = text.substring(0, 500);
+                html += '<p><strong>预览:</strong></p>';
+                html += '<pre>' + escapeHtml(preview) + (text.length > 500 ? '...' : '') + '</pre>';
+                
+                // 分析内容
+                html += '<p><strong>分析:</strong></p>';
+                html += '<ul>';
+                
+                if (text.includes('<html')) {
+                    html += '<li>✅ 包含HTML标签</li>';
                 }
-                info += `</pre>`;
+                if (text.includes('千千静听') || text.includes('歌词')) {
+                    html += '<li>✅ 包含歌词相关内容</li>';
+                }
+                if (text.includes('下载') || text.includes('download')) {
+                    html += '<li>✅ 包含下载信息</li>';
+                }
+                if (text.length < 200) {
+                    html += '<li>⚠️ 数据较短，可能是验证页面</li>';
+                }
+                
+                html += '</ul>';
+                
+                // 查看完整数据按钮
+                html += '<button class="btn-small" onclick="viewFullData()">查看完整数据</button>';
             }
             
-            // 分析内容
-            if (data.length < 200) {
-                info += `<p style="color:#dc3545;">⚠️ 响应太短，可能是验证页面或错误页</p>`;
-            }
+            html += '</div>';
             
-            if (data.includes('<html') || data.includes('<!DOCTYPE')) {
-                info += `<p>✅ 检测到HTML页面</p>`;
-            }
-            
-            if (data.includes('cloudflare') || data.includes('CDN') || data.includes('验证')) {
-                info += `<p style="color:#ffc107;">⚠️ 可能触发了CDN验证</p>`;
-            }
-            
-            infoDiv.innerHTML = info;
+            contentDiv.innerHTML = html;
             resultDiv.style.display = 'block';
-            
-            showStatus(`✅ 获取成功！长度: ${data.length} 字符`, 'success');
-            logDebug(`显示结果，长度: ${data.length}`);
         }
         
-        async function testAllMethods() {
-            showStatus('测试所有方法中...', 'info');
-            logDebug('开始测试所有方法');
-            
-            const methods = [method1, method2, method3, method4];
-            const results = [];
-            
-            for (let i = 0; i < methods.length; i++) {
-                showStatus(`测试方法 ${i+1}...`, 'info');
-                try {
-                    const result = await methods[i]();
-                    results.push({
-                        method: i+1,
-                        success: result.success,
-                        length: result.success ? result.data.length : 0,
-                        error: result.error || '无'
-                    });
-                } catch (error) {
-                    results.push({ method: i+1, success: false, error: error.message });
-                }
-            }
-            
-            // 显示测试结果
-            let testResult = '<h4>测试结果：</h4><table style="width:100%; border-collapse:collapse;">';
-            testResult += '<tr><th>方法</th><th>状态</th><th>长度</th><th>错误</th></tr>';
-            
-            results.forEach(r => {
-                testResult += `<tr>
-                    <td>方法 ${r.method}</td>
-                    <td>${r.success ? '✅ 成功' : '❌ 失败'}</td>
-                    <td>${r.length || '-'}</td>
-                    <td>${r.error}</td>
-                </tr>`;
-            });
-            
-            testResult += '</table>';
-            
-            document.getElementById('responseInfo').innerHTML = testResult;
-            document.getElementById('result').style.display = 'block';
-            
-            // 找出最好的方法
-            const best = results.filter(r => r.success).sort((a,b) => b.length - a.length)[0];
-            if (best) {
-                showStatus(`最佳方法: 方法 ${best.method} (长度: ${best.length})`, 'success');
-                selectMethod(best.method);
+        // 查看完整数据
+        function viewFullData() {
+            const data = localStorage.getItem('ttplay_full_data');
+            if (data) {
+                document.getElementById('resultContent').innerHTML = 
+                    '<h4>完整数据:</h4><pre style="max-height:500px;">' + escapeHtml(data) + '</pre>' +
+                    '<button class="btn-small" onclick="getData()">返回</button>';
+            } else {
+                alert('没有找到保存的完整数据');
             }
         }
         
-        function showResponseDetails() {
-            const debugDiv = document.getElementById('debugInfo');
-            const debugOutput = document.getElementById('debugOutput');
-            
-debugOutput.textContent = debugLogs.join('\n');
-debugDiv.style.display = 'block';
-}
+        // 保存到本地存储
+        function saveToStorage(text) {
+            try {
+                // 保存完整数据（最多5000字符）
+                const dataToSave = text.length > 5000 ? text.substring(0, 5000) : text;
+                localStorage.setItem('ttplay_full_data', dataToSave);
+                localStorage.setItem('ttplay_last_update', new Date().toISOString());
+                console.log('数据已保存到本地存储');
+            } catch (e) {
+                console.warn('本地存储失败:', e);
+            }
+        }
         
-// 初始化
-window.onload = function() {
-showStatus('就绪！选择方法后点击"开始获取数据"', 'info');
-logDebug('页面加载完成');
-};
+        // 清除所有
+        function clearAll() {
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('resultContent').innerHTML = '';
+            console.log('已清除所有显示结果');
+        }
         
-// 添加超时处理
-const originalFetch = window.fetch;
-window.fetch = function(url, options) {
-const timeout = options?.timeout || 15000;
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), timeout);
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ==== 页面初始化 ====
+        window.onload = function() {
+            console.log('=== TTPlay访问工具已加载 ===');
+            console.log('页面URL:', window.location.href);
+            console.log('用户代理:', navigator.userAgent);
             
-return originalFetch(url, {
-options,
-signal: controller.signal
-}).finally(() => clearTimeout(timeoutId));
-};
-    
-
+            // 显示欢迎信息
+            showStatus('🟢 工具已就绪，点击按钮开始', 'success');
+            
+            // 检查是否有历史数据
+            if (localStorage.getItem('ttplay_full_data')) {
+                console.log('检测到历史数据');
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('resultContent').innerHTML = 
+                    '<p>检测到之前保存的数据。</p>' +
+                    '<button class="btn-small" onclick="viewFullData()">查看历史数据</button>' +
+                    '<button class="btn-small" onclick="getData()">获取新数据</button>';
+            }
+        };
+    </script>
+</body>
+</html>
