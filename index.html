@@ -1,556 +1,218 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTPlay Cookie 获取工具</title>
+    <title>千千静听歌词服务器访问工具</title>
     <style>
-        :root {
-            --primary: #007acc;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-        }
-        * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background: #f5f5f5;
-            line-height: 1.6;
         }
         .container {
             background: white;
-            border-radius: 10px;
             padding: 30px;
+            border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         h1 {
             color: #333;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 10px;
+            text-align: center;
         }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        button {
-            padding: 12px 24px;
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #007acc;
+            color: white;
             border: none;
             border-radius: 5px;
+            font-size: 18px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
         }
-        .btn-primary {
-            background: var(--primary);
-            color: white;
+        .btn:hover {
+            background: #005fa3;
         }
-        .btn-primary:hover { background: #005fa3; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-warning { background: var(--warning); color: white; }
-        .status-box {
+        .result {
+            margin-top: 20px;
             padding: 15px;
+            background: #f8f9fa;
             border-radius: 5px;
-            margin: 15px 0;
             display: none;
         }
-        .loading { background: #e6f3ff; border-left: 4px solid var(--primary); }
-        .success { background: #e8f5e8; border-left: 4px solid var(--success); }
-        .error { background: #ffe6e6; border-left: 4px solid var(--danger); }
-        pre {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            overflow: auto;
-            font-size: 14px;
+        .success {
+            border-left: 4px solid #28a745;
+            background: #e8f5e8;
         }
-        .tab-container {
-            margin: 20px 0;
+        .error {
+            border-left: 4px solid #dc3545;
+            background: #ffe6e6;
         }
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
+        .loading {
+            border-left: 4px solid #007acc;
+            background: #e6f3ff;
         }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            margin-bottom: -1px;
-        }
-        .tab.active {
-            border-color: #ddd;
-            border-bottom-color: white;
-            background: white;
-            border-radius: 5px 5px 0 0;
-        }
-        .tab-content {
-            display: none;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-top: none;
-            background: white;
-        }
-        .tab-content.active { display: block; }
-        .cookie-list {
-            background: #f8f9fa;
+        .cookie-box {
+            background: #fff3cd;
             padding: 10px;
             border-radius: 5px;
             margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
         }
-        .cookie-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .cookie-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔧 TTPlay 数据访问工具</h1>
-        <p>这个工具帮助您从 <code>http://ttplay.muaini.cn</code> 获取数据并设置Cookie。</p>
+        <h1>🎵 千千静听歌词服务器访问工具</h1>
+        <p>通过GitHub Pages代理访问 <code>http://ttplay.muaini.cn</code></p>
         
-        <div class="tab-container">
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab(0)">CORS方法</div>
-                <div class="tab" onclick="switchTab(1)">代理方法</div>
-                <div class="tab" onclick="switchTab(2)">数据查看</div>
-                <div class="tab" onclick="switchTab(3)">配置设置</div>
-            </div>
-            
-            <!-- Tab 1: CORS方法 -->
-            <div class="tab-content active" id="tab1">
-                <h3>方法1: 直接CORS访问</h3>
-                <p>尝试直接访问目标服务器，可能需要特定请求头。</p>
-                
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="trySimpleCORS()">简单CORS</button>
-                    <button class="btn-primary" onclick="tryWithHeaders()">带请求头</button>
-                    <button class="btn-warning" onclick="tryNoCORS()">No-CORS模式</button>
-                </div>
-                
-                <div id="status1" class="status-box"></div>
-            </div>
-            
-            <!-- Tab 2: 代理方法 -->
-            <div class="tab-content" id="tab2">
-                <h3>方法2: 通过代理访问</h3>
-                <p>使用代理服务绕过跨域限制。</p>
-                
-                <div class="btn-group">
-                    <button class="btn-success" onclick="useCorsProxy()">CORS代理</button>
-                    <button class="btn-success" onclick="useImageProxy()">图片代理</button>
-                    <button class="btn-success" onclick="useIframeProxy()">IFrame代理</button>
-                </div>
-                
-                <div id="status2" class="status-box"></div>
-            </div>
-            
-            <!-- Tab 3: 数据查看 -->
-            <div class="tab-content" id="tab3">
-                <h3>已获取的数据</h3>
-                <div id="dataView">
-                    <p>还没有获取数据，请先使用上面的方法获取。</p>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn-warning" onclick="showCookies()">查看Cookie</button>
-                    <button class="btn-danger" onclick="clearAllCookies()">清除所有</button>
-                    <button class="btn-primary" onclick="exportData()">导出数据</button>
-                </div>
-            </div>
-            
-            <!-- Tab 4: 配置设置 -->
-            <div class="tab-content" id="tab4">
-                <h3>配置选项</h3>
-                
-                <div style="margin: 15px 0;">
-                    <label>目标URL:</label>
-                    <input type="text" id="targetUrl" value="http://ttplay.muaini.cn/" style="width: 100%; padding: 8px; margin: 5px 0;">
-                </div>
-                
-                <div style="margin: 15px 0;">
-                    <label>CDN验证头:</label>
-                    <textarea id="cdnHeaders" style="width: 100%; height: 100px; padding: 8px;" placeholder='{"X-CDN-Verify": "your_token", "Referer": "http://ttplay.muaini.cn/"}'>{"X-Requested-With": "XMLHttpRequest", "Accept": "application/json", "Referer": "http://ttplay.muaini.cn/"}</textarea>
-                </div>
-                
-                <button class="btn-primary" onclick="saveConfig()">保存配置</button>
-            </div>
+        <div id="status" class="result"></div>
+        
+        <button class="btn" onclick="getData()">🚀 开始获取数据</button>
+        <button class="btn" onclick="showCookies()">🍪 查看Cookie</button>
+        <button class="btn" onclick="clearCookies()">🗑️ 清除Cookie</button>
+        
+        <a href="proxy.html" class="btn" style="background: #28a745;">
+            🔧 打开代理页面（新窗口）
+        </a>
+        
+        <div id="cookieResult" class="result"></div>
+        
+        <div id="dataResult" class="result" style="display:none;">
+            <h3>获取到的数据：</h3>
+            <div id="dataContent"></div>
         </div>
         
-        <div id="debugInfo" style="display: none;">
-            <h3>调试信息</h3>
-            <pre id="debugContent"></pre>
+        <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-radius: 5px;">
+            <h3>📝 使用说明：</h3>
+            <ol>
+                <li>点击"开始获取数据"按钮</li>
+                <li>等待几秒钟获取数据</li>
+                <li>系统会自动设置Cookie</li>
+                <li>可以查看或清除Cookie</li>
+                <li>需要时重新获取</li>
+            </ol>
+            <p><strong>注意：</strong>如果直接访问失败，请点击"打开代理页面"</p>
         </div>
     </div>
     
-    <!-- 隐藏的iframe用于代理 -->
-    <iframe id="proxyFrame" style="display: none;"></iframe>
-    
     <script>
-        // =================== 配置管理 ===================
-        const CONFIG = {
-            targetUrl: 'http://ttplay.muaini.cn/',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json, text/javascript, */*; q=0.01',
-                'Referer': 'http://ttplay.muaini.cn/',
-                'Origin': 'http://ttplay.muaini.cn/',
-                'User-Agent': navigator.userAgent
-            },
-            cookiesToSet: ['ttplay_token', 'ttplay_session', 'ttplay_data'],
-            proxyServices: [
-                'https://api.allorigins.win/raw?url=',
-                'https://corsproxy.io/?',
-                'https://thingproxy.freeboard.io/fetch/'
-            ]
-        };
-        
-        // 从localStorage加载配置
-        function loadConfig() {
-            const saved = localStorage.getItem('ttplay_config');
-            if (saved) {
-                Object.assign(CONFIG, JSON.parse(saved));
-                document.getElementById('targetUrl').value = CONFIG.targetUrl;
-                document.getElementById('cdnHeaders').value = JSON.stringify(CONFIG.headers, null, 2);
-            }
+        // 显示状态
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = message;
+            status.className = `result ${type}`;
+            status.style.display = 'block';
         }
         
-        // 保存配置
-        function saveConfig() {
-            CONFIG.targetUrl = document.getElementById('targetUrl').value;
-            try {
-                CONFIG.headers = JSON.parse(document.getElementById('cdnHeaders').value);
-                localStorage.setItem('ttplay_config', JSON.stringify(CONFIG));
-                showStatus('配置已保存', 'success', 1);
-            } catch (e) {
-                showStatus('JSON格式错误', 'error', 1);
-            }
-        }
-        
-        // =================== 标签页切换 ===================
-        function switchTab(index) {
-            document.querySelectorAll('.tab').forEach((tab, i) => {
-                tab.classList.toggle('active', i === index);
-            });
-            document.querySelectorAll('.tab-content').forEach((content, i) => {
-                content.classList.toggle('active', i === index);
-            });
-        }
-        
-        // =================== 状态显示 ===================
-        function showStatus(message, type = 'info', tab = 0) {
-            const statusBox = document.getElementById(`status${tab + 1}`);
-            statusBox.innerHTML = message;
-            statusBox.className = `status-box ${type}`;
-            statusBox.style.display = 'block';
-            return statusBox;
-        }
-        
-        // =================== 方法1: CORS方案 ===================
-        async function trySimpleCORS() {
-            const status = showStatus('正在尝试简单CORS访问...', 'loading', 0);
+        // 获取数据
+        async function getData() {
+            showStatus('正在连接服务器...', 'loading');
             
             try {
-                const response = await fetch(CONFIG.targetUrl, {
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
+                // 使用跨域代理
+                const proxyUrl = 'https://api.allorigins.win/raw?url=' + 
+                                encodeURIComponent('http://ttplay.muaini.cn');
+                
+                const response = await fetch(proxyUrl);
                 
                 if (response.ok) {
                     const text = await response.text();
-                    status.innerHTML = '✅ CORS访问成功！';
-                    processResponse(text);
+                    
+                    showStatus('✅ 成功获取数据！', 'success');
+                    
+                    // 显示部分数据
+                    document.getElementById('dataContent').innerHTML = 
+                        `<pre>${text.substring(0, 500)}...</pre>` +
+                        `<p>总长度: ${text.length} 字符</p>`;
+                    document.getElementById('dataResult').style.display = 'block';
+                    
+                    // 设置Cookie
+                    setCookie('ttplay_data', btoa(text), 7);
+                    setCookie('ttplay_access_time', new Date().toISOString(), 7);
+                    
+                    // 提取重要信息
+                    extractAndSetCookies(text);
+                    
                 } else {
-                    status.innerHTML = `❌ 服务器返回: ${response.status}`;
+                    showStatus('❌ 服务器错误: ' + response.status, 'error');
                 }
-            } catch (error) {
-                status.innerHTML = `❌ CORS错误: ${error.message}`;
-            }
-        }
-        
-        async function tryWithHeaders() {
-            const status = showStatus('正在带请求头访问...', 'loading', 0);
-            
-            try {
-                const response = await fetch(CONFIG.targetUrl, {
-                    mode: 'cors',
-                    headers: CONFIG.headers,
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    const text = await response.text();
-                    status.innerHTML = '✅ 带请求头访问成功！';
-                    processResponse(text);
-                } else {
-                    status.innerHTML = `❌ 服务器返回: ${response.status}<br>尝试分析响应头...`;
-                    
-                    // 显示响应头
-                    const headers = {};
-                    response.headers.forEach((value, key) => {
-                        headers[key] = value;
-                    });
-                    debugInfo(JSON.stringify(headers, null, 2));
-                }
-            } catch (error) {
-                status.innerHTML = `❌ 错误: ${error.message}<br>尝试其他方法...`;
-                setTimeout(tryNoCORS, 1000);
-            }
-        }
-        
-        async function tryNoCORS() {
-            const status = showStatus('正在尝试No-CORS模式...', 'loading', 0);
-            
-            try {
-                // no-cors模式不能读取响应，但可以检测是否能连接
-                await fetch(CONFIG.targetUrl, {
-                    mode: 'no-cors',
-                    headers: CONFIG.headers
-                });
-                
-                status.innerHTML = '✅ No-CORS连接成功！<br>可以连接但不能直接读取响应。';
-                
-                // 尝试通过其他方式获取数据
-                setTimeout(useImageProxy, 1000);
                 
             } catch (error) {
-                status.innerHTML = `❌ No-CORS也失败了: ${error.message}`;
+                showStatus('❌ 连接失败: ' + error.message, 'error');
             }
         }
         
-        // =================== 方法2: 代理方案 ===================
-        async function useCorsProxy() {
-            const status = showStatus('正在尝试CORS代理...', 'loading', 1);
-            
-            for (let proxy of CONFIG.proxyServices) {
-                try {
-                    const proxyUrl = proxy + encodeURIComponent(CONFIG.targetUrl);
-                    status.innerHTML = `尝试代理: ${proxy.substring(0, 30)}...`;
-                    
-                    const response = await fetch(proxyUrl, {
-                        timeout: 10000
-                    });
-                    
-                    if (response.ok) {
-                        const text = await response.text();
-                        status.innerHTML = '✅ 代理访问成功！';
-                        processResponse(text);
-                        return;
-                    }
-                } catch (error) {
-                    continue;
-                }
-            }
-            
-            status.innerHTML = '❌ 所有代理都失败了';
-        }
-        
-        function useImageProxy() {
-            const status = showStatus('使用图片探针技术...', 'loading', 1);
-            
-            // 创建图片检测
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            
-            img.onload = function() {
-                status.innerHTML = '✅ 图片加载成功，网站可访问';
-                
-                // 尝试获取favicon
-                const faviconUrl = CONFIG.targetUrl.replace(/\/$/, '') + '/favicon.ico';
-                setCookie('ttplay_access', 'true', 1);
-                setCookie('ttplay_last_checked', new Date().toISOString(), 1);
-                
-                // 尝试获取其他资源
-                tryGetResource();
-            };
-            
-            img.onerror = function() {
-                status.innerHTML = '❌ 图片加载失败';
-            };
-            
-            // 尝试加载网站logo或favicon
-            img.src = CONFIG.targetUrl + '?' + Date.now();
-        }
-        
-        function useIframeProxy() {
-            const status = showStatus('使用IFrame代理...', 'loading', 1);
-            const iframe = document.getElementById('proxyFrame');
-            
-            iframe.src = CONFIG.targetUrl;
-            
-            // 等待iframe加载
-            setTimeout(() => {
-                try {
-                    // 尝试读取iframe内容
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    status.innerHTML = `✅ IFrame加载完成<br>标题: ${iframeDoc.title || '无标题'}`;
-                    
-                    // 设置访问标记
-                    setCookie('ttplay_iframe_accessed', 'true', 1);
-                    
-                } catch (e) {
-                    status.innerHTML = '✅ IFrame已加载（跨域限制无法直接读取）';
-                    setCookie('ttplay_iframe_loaded', 'true', 1);
-                }
-            }, 3000);
-        }
-        
-        // =================== 数据处理 ===================
-        function processResponse(text) {
-            // 显示数据
-            const dataView = document.getElementById('dataView');
-            dataView.innerHTML = `
-                <h4>获取到的数据:</h4>
-                <pre>${text.substring(0, 500)}${text.length > 500 ? '...' : ''}</pre>
-                <p>总长度: ${text.length} 字符</p>
-            `;
-            
-            // 设置Cookie
-            setCookie('ttplay_raw_data', btoa(encodeURIComponent(text)), 1);
-            
-            // 提取有用信息
-            extractAndSetCookies(text);
-            
-            // 切换到数据查看标签
-            switchTab(2);
-        }
-        
+        // 提取信息并设置Cookie
         function extractAndSetCookies(html) {
-            const extracted = {};
+            // 提取标题
+            const titleMatch = html.match(/<title>(.*?)<\/title>/);
+            if (titleMatch && titleMatch[1]) {
+                setCookie('ttplay_title', encodeURIComponent(titleMatch[1]), 7);
+            }
             
-            // 简单提取示例
-            const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-            if (titleMatch) extracted.title = titleMatch[1];
+            // 提取下载密码
+            const passwordMatch = html.match(/下载密码[：:]\s*(\w+)/);
+            if (passwordMatch && passwordMatch[1]) {
+                setCookie('ttplay_password', passwordMatch[1], 7);
+            }
             
-            // 提取meta标签
-            const metaTags = html.match(/<meta[^>]+>/g) || [];
-            metaTags.forEach(tag => {
-                const nameMatch = tag.match(/name=["']([^"']+)["']/);
-                const contentMatch = tag.match(/content=["']([^"']*)["']/);
-                if (nameMatch && contentMatch) {
-                    extracted[`meta_${nameMatch[1]}`] = contentMatch[1];
-                }
-            });
-            
-            // 保存提取的数据
-            if (Object.keys(extracted).length > 0) {
-                setCookie('ttplay_extracted', JSON.stringify(extracted), 1);
-                
-                const dataView = document.getElementById('dataView');
-                dataView.innerHTML += `
-                    <h4>提取的信息:</h4>
-                    <pre>${JSON.stringify(extracted, null, 2)}</pre>
-                `;
+            // 提取更新时间
+            const updateMatch = html.match(/(\d{4}-\d{2}-\d{2})更新/);
+            if (updateMatch && updateMatch[1]) {
+                setCookie('ttplay_update', updateMatch[1], 7);
             }
         }
         
-        // =================== Cookie操作 ===================
+        // 设置Cookie
         function setCookie(name, value, days) {
             const expires = new Date();
             expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-            document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
-            console.log(`设置Cookie: ${name}`);
+            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+            console.log('已设置Cookie:', name);
         }
         
+        // 显示Cookie
         function showCookies() {
-            const cookies = document.cookie.split(';').map(c => c.trim()).filter(c => c);
-            const dataView = document.getElementById('dataView');
+            const cookies = document.cookie;
+            const result = document.getElementById('cookieResult');
             
-            if (cookies.length === 0) {
-                dataView.innerHTML = '<p>没有Cookie</p>';
-                return;
-            }
+            if (cookies) {
+                let html = '<h3>当前Cookie：</h3>';
+                cookies.split(';').forEach(cookie => {
+                    const [name, value] = cookie.trim().split('=');
+                    html += `<div class="cookie-box">${name} = ${decodeURIComponent(value || '')}</div>`;
+                });
+                result.innerHTML = html;
+} else {
+result.innerHTML = '<p>暂无Cookie</p>';
+}
             
-            let html = '<h4>当前Cookie:</h4><div class="cookie-list">';
-            cookies.forEach(cookie => {
-                const [name, value] = cookie.split('=');
-                const decodedValue = decodeURIComponent(value || '');
-                html += `
-                    <div class="cookie-item">
-                        <strong>${name}</strong>
-                        <span>${decodedValue.length > 50 ? decodedValue.substring(0, 50) + '...' : decodedValue}</span>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            dataView.innerHTML = html;
-        }
+result.style.display = 'block';
+result.className = 'result success';
+}
         
-        function clearAllCookies() {
-            document.cookie.split(';').forEach(cookie => {
-                const name = cookie.split('=')[0].trim();
-                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
-            });
-            showStatus('所有Cookie已清除', 'success', 2);
-            showCookies();
-        }
+// 清除Cookie
+function clearCookies() {
+document.cookie.split(';').forEach(cookie => {
+const name = cookie.split('=')[0].trim();
+document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+});
+showStatus('✅ 所有Cookie已清除', 'success');
+document.getElementById('cookieResult').style.display = 'none';
+}
         
-        function exportData() {
-            const data = {
-                cookies: document.cookie,
-                config: CONFIG,
-                time: new Date().toISOString()
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ttplay_data_${Date.now()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        // =================== 调试工具 ===================
-        function debugInfo(info) {
-            const debugDiv = document.getElementById('debugInfo');
-            const contentDiv = document.getElementById('debugContent');
-            contentDiv.textContent = info;
-            debugDiv.style.display = 'block';
-        }
-        
-        // =================== 资源获取 ===================
-        function tryGetResource() {
-            // 尝试获取常见资源
-            const resources = [
-                '/robots.txt',
-                '/sitemap.xml',
-                '/api',
-                '/data.json',
-                '/config.json'
-            ];
-            
-            resources.forEach(resource => {
-                fetch(CONFIG.targetUrl.replace(/\/$/, '') + resource)
-                    .then(res => {
-                        if (res.ok) console.log(`资源存在: ${resource}`);
-                    })
-                    .catch(() => {});
-            });
-        }
-        
-        // =================== 初始化 ===================
-        window.onload = function() {
-            loadConfig();
-            console.log('TTPlay访问工具已加载');
-            console.log('目标URL:', CONFIG.targetUrl);
-            
-            // 自动尝试简单访问
-            setTimeout(() => {
-                if (document.cookie.includes('ttplay')) {
-                    showStatus('检测到已有Cookie，可以直接查看数据', 'info', 0);
-                }
-            }, 1000);
-        };
-    </script>
-</body>
-</html>
+// 页面加载时显示欢迎信息
+window.onload = function() {
+showStatus('就绪！点击"开始获取数据"按钮', 'success');
+};
+    
+
